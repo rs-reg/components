@@ -1,7 +1,5 @@
 var mapComponent = function(options){
 	var _this = this;
-	this.counter = 0;
-	this.counter++;
 	this.geocoder;
 	this.map;
 	this.marker;
@@ -27,22 +25,23 @@ var mapComponent = function(options){
 	this.data = Object.keys(options.data).length != 0 ? options.data : { 'address' : [], 'addressIcon' : 'https://maps.google.com/mapfiles/kml/shapes/schools_maps.png' , 'currentIcon' : 'https://maps.google.com/mapfiles/kml/shapes/library_maps.png', 'zoom' : 10  }
 	this.generator.setPrefStructure(this.data);
 	this.address =  this.data.address;
-
+	this.render();
 	this.generator.loadJs('http://localhost/components/mapcomponent/js/jquery.js', function(){
-		loadGoogleMaps( 3 ).done(function() {
-			_this.render();
-			_this.initMap();
-			_this.events();
-		});
+		_this.initMap();
+		_this.events();
 	});
+	if(typeof google === 'object' && typeof google.maps === 'object'){
+		console.log('Map loaded');
+	}
+
 }
 
 mapComponent.prototype.initMap = function () {
 	var _this = this;
-	console.log(_this.tab);
 	this.geocoder = new google.maps.Geocoder();
 	var latlng = new google.maps.LatLng(-34.397, 150.644);
 	this.mapOptions.center = latlng;
+
 	/* init map */
 	this.map = new google.maps.Map(document.getElementById('map-canvas-'+ _this.tab), this.mapOptions);
 
@@ -119,22 +118,22 @@ mapComponent.prototype.setMarker = function (location, confirm, isCurrent) {
 };
 
 mapComponent.prototype.searchAddress = function (address, confirm, callback) {
-	var _this = this;
-	this.geocoder.geocode( { 'address': address}, function(results, status) {
-		if (status == google.maps.GeocoderStatus.OK) {
-			_this.map.setCenter(results[0].geometry.location);
+    var _this = this;
+    this.geocoder.geocode( { 'address': address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+            _this.map.setCenter(results[0].geometry.location);
 
-			/* Set Marker */
-			_this.setMarker(results[0].geometry.location, confirm, false);
+            /* Set Marker */
+            _this.setMarker(results[0].geometry.location, confirm, false);
 
-			/* Get Address Callback */
-			if(typeof callback != 'undefined') {
-				callback(address, results[0]);
-			}
-			_this.focusAddress(results[0].geometry.location.lat(), results[0].geometry.location.lng())
+            /* Get Address Callback */
+            if(typeof callback != 'undefined') {
+                callback(address, results[0]);
+            }
+            _this.focusAddress(results[0].geometry.location.lat(), results[0].geometry.location.lng())
             // _this.zoomOut();
-          }
-        });
+        }
+    });
 };
 
 mapComponent.prototype.focusAddress = function (lat, lng) {
@@ -146,9 +145,9 @@ mapComponent.prototype.focusAddress = function (lat, lng) {
     // this.marker.setPosition( pos );
     this.map.panTo( pos );
     this.map.setZoom(parseInt(this.mapOptions.zoom));
-  };
+};
 
-  mapComponent.prototype.resetMarkers = function () {
+mapComponent.prototype.resetMarkers = function () {
 	// console.log('resetMarkers');
 	var _this = this;
 	/* remove all markers except user */
@@ -184,21 +183,21 @@ mapComponent.prototype.redrawMap = function(){
 
 	var infowindow = new google.maps.InfoWindow();
 	var marker, i;
-	for (i = 0; i < this.address.length; i++) {  
-		marker = new google.maps.Marker({
-			position: new google.maps.LatLng(this.address[i].lat, this.address[i].lng),
-			map: this.map
-		});
+      for (i = 0; i < this.address.length; i++) {  
+      	marker = new google.maps.Marker({
+      		position: new google.maps.LatLng(this.address[i].lat, this.address[i].lng),
+      		map: this.map
+      	});
 
-		google.maps.event.addListener(marker, 'click', (function(marker, i) {
-			return function() {
-				infowindow.setContent(_this.address[i].title);
-				infowindow.open(_this.map, marker);
-			}
-		})(marker, i));
-		marker.setIcon(this.data.addressIcon, false);
-		this.markers.push(marker);
-	}
+      	google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      		return function() {
+      			infowindow.setContent(_this.address[i].title);
+      			infowindow.open(_this.map, marker);
+      		}
+      	})(marker, i));
+      	marker.setIcon(this.data.addressIcon, false);
+      	this.markers.push(marker);
+      }
 }
 
 mapComponent.prototype.zoomOut = function(){
@@ -219,7 +218,7 @@ mapComponent.prototype.zoomAddress = function (rate) {
 
 mapComponent.prototype.events = function(){
 	var _this = this;
-	console.log('events_'+ _this.tab);
+
 	$('.js-gMapInput-' + _this.tab).on('blur', function(e){
 		var address = $(this).val();
 		/* Callback to set the Lat and Long */
@@ -261,60 +260,60 @@ mapComponent.prototype.events = function(){
 		_this.searchAddress(address, true, callback);
 	});
 
-function delAddress(){
-	$('.btnRemove').off('click').on('click', function(){
-		var $selected = $(this).closest('li');
-		var index = $selected.index();
-		_this.address.splice(index, 1);
-		_this.generator.setPref('address', _this.address);
+	function delAddress(){
+		$('.btnRemove').off('click').on('click', function(){
+			var $selected = $(this).closest('li');
+			var index = $selected.index();
+			_this.address.splice(index, 1);
+			_this.generator.setPref('address', _this.address);
 
-		$selected.remove();
+			$selected.remove();
 			// _this.resetMarkers();
 			_this.redrawMap();
 			_this.zoomOut();
-		});
-}
-
-function listEvents(){
-	$('.js-gMapAddress li').off('click');
-	$('.js-gMapAddress li').on('click', function(){
-		var rel = $(this).parent().attr('rel');
-		$('.js-gMapAddress[rel="'+rel+'"] li').removeClass('selected');
-		$(this).addClass('selected');
-		var lat = $(this).attr('lat');
-		var lng = $(this).attr('lng');
-		_this.focusAddress(lat, lng);
-	});
-}
-
-$('.js-gMapShow-' + _this.tab).on('click', function(){
-	_this.zoomOut();
-});
-
-$('.js-gMapZoom[rel='+this.tab+']').on('click', function () {
-	var value = $(this).val();
-
-	if (value != 1) {
-		value = $('.js-gMapZoomRate[rel='+_this.tab+']').val();
+			});
 	}
-	_this.zoomAddress(value);
 
-	/* set pref */
-	_this.generator.setPref('zoom', value);
-});
+	function listEvents(){
+		$('.js-gMapAddress li').off('click');
+		$('.js-gMapAddress li').on('click', function(){
+			var rel = $(this).parent().attr('rel');
+			$('.js-gMapAddress[rel="'+rel+'"] li').removeClass('selected');
+			$(this).addClass('selected');
+			var lat = $(this).attr('lat');
+			var lng = $(this).attr('lng');
+			_this.focusAddress(lat, lng);
+		});
+	}
 
-/* @NOTE Zoom Rate +- */
-$('.js-gMapZoomRate[rel='+this.tab+']').on('change click', function () {
+	$('.js-gMapShow-' + _this.tab).on('click', function(){
+		_this.zoomOut();
+	});
 
-	if ($(this).parent().prev().is(':checked')) {
-
+	$('.js-gMapZoom[rel='+this.tab+']').on('click', function () {
 		var value = $(this).val();
+
+		if (value != 1) {
+			value = $('.js-gMapZoomRate[rel='+_this.tab+']').val();
+		}
 		_this.zoomAddress(value);
 
 		/* set pref */
 		_this.generator.setPref('zoom', value);
-	}
-});
+	});
+
+	/* @NOTE Zoom Rate +- */
+	$('.js-gMapZoomRate[rel='+this.tab+']').on('change click', function () {
+
+		if ($(this).parent().prev().is(':checked')) {
+
+			var value = $(this).val();
+			_this.zoomAddress(value);
+
+			/* set pref */
+			_this.generator.setPref('zoom', value);
+		}
+	});
 }
 
 mapComponent.prototype.render = function(){
@@ -515,21 +514,21 @@ mapComponent.prototype.render = function(){
 }
 
 mapComponent.prototype.setIcon = function (icon, isCurrent) {
-	if (this.markers.length > 0) {
-		if (isCurrent) {
-			this.markers[0].setIcon(icon);
-			/* Set Pref */
-			this.generator.setPref('currentIcon', icon);
-		} else {
-			for (var i = 1; i < this.markers.length; i++) {
-				this.markers[i].setIcon(icon);
-			}
+    if (this.markers.length > 0) {
+        if (isCurrent) {
+            this.markers[0].setIcon(icon);
+            /* Set Pref */
+            this.generator.setPref('currentIcon', icon);
+        } else {
+            for (var i = 1; i < this.markers.length; i++) {
+                this.markers[i].setIcon(icon);
+            }
             // this.marker.setIcon(icon, false);
 
             /* Set Pref */
             this.generator.setPref('addressIcon', icon);
-          }
         }
+    }
 };
 
 mapComponent.prototype.handleNoGeolocation = function (errorFlag) {
@@ -549,71 +548,3 @@ mapComponent.prototype.handleNoGeolocation = function (errorFlag) {
 	var infowindow = new google.maps.InfoWindow(options);
 	this.map.setCenter(options.position);
 };
-
-var loadGoogleMaps = (function($) {
-	var now = $.now(), promise;
-	
-	return function( version, language ) {
-		
-		if( promise ) { return promise; }
-		
-			//Create a Deferred Object
-			var	deferred = $.Deferred(),
-
-			//Declare a resolve function, pass google.maps for the done functions
-			resolve = function () {
-				deferred.resolve( window.google && google.maps ? google.maps : false );
-			},
-			
-			//global callback name
-			callbackName = "loadGoogleMaps_" + ( now++ ),
-			
-			// Default Parameters
-			params = $.extend( {'sensor': false} , language ? {"language": language} : {});;
-
-		//If google.maps exists, then Google Maps API was probably loaded with the <script> tag
-		if( window.google && google.maps ) {
-			
-			resolve();
-
-		//If the google.load method exists, lets load the Google Maps API in Async.
-	} else if ( window.google && google.load ) {
-		
-		google.load("maps", version || 3, {"other_params": $.param(params) , "callback" : resolve});
-
-		//Last, try pure jQuery Ajax technique to load the Google Maps API in Async.
-	} else {
-
-			//Ajax URL params
-			params = $.extend( params, {
-				'v': version || 3,
-				'callback': callbackName
-			});
-			
-			//Declare the global callback
-			window[callbackName] = function( ) {
-				
-				resolve();
-				
-				//Delete callback
-				setTimeout(function() {
-					try{
-						delete window[callbackName];
-					} catch( e ) {}
-				}, 20);
-			};
-			
-			//Can't use the jXHR promise because 'script' doesn't support 'callback=?'
-			$.ajax({
-				dataType: 'script',
-				data: params,
-				url: 'http://maps.google.com/maps/api/js'				
-			});
-			
-		}
-
-		promise = deferred.promise(); 
-		
-		return promise;
-	};
-}(jQuery));
