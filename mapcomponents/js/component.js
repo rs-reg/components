@@ -379,7 +379,7 @@ mapComponent.prototype.render = function(){
 
 	var latLongTitle = this.generator.getTitle({
 		'title' : {
-			'title'   : 'Edit Lat & Long for a more precise location'
+			'title'  : 'Edit Lat & Long for a more precise location',
 		}
 	});
 
@@ -391,8 +391,13 @@ mapComponent.prototype.render = function(){
 			'type'           : 'text',
 			'class'	         : 'js-gMapInputLat-' + _this.tab,
 			'placeholder'    : 'Example: 1.0000',
-			'rel'            : _this.tab
+			'rel'            : _this.tab,
 		}
+	});
+
+	var spaceInput = this.generator.getCustom({
+		"title" : { "title" : ""},
+		"input": "<br>"
 	});
 
 	var longInput = this.generator.getInput({
@@ -412,8 +417,9 @@ mapComponent.prototype.render = function(){
 			'title' 	       : ''
 		},
 		'input' : {
-			'class'   : 'js-gMapAdd_' + _this.tab,
-			'value'   : 'Add Into Map'
+			'class' 	: 'js-gMapAdd_' + _this.tab,
+			'value' 	: 'Add Into Map',
+			'style'	: 'margin-top:10px;'
 		}
 	});
 
@@ -463,6 +469,16 @@ mapComponent.prototype.render = function(){
 		}
 	});
 
+	var spacetitle = this.generator.getCustom({
+		"title" : { "title" : ""},
+		"input": "<br>"
+	});
+
+	var spaceuserIcon = this.generator.getCustom({
+		"title" : { "title" : ""},
+		"input": "<br>"
+	});
+
 	var IconTitle = this.generator.getTitle({
 		'title' : {
 			'title'   : 'Map Marker Icon',
@@ -506,7 +522,7 @@ mapComponent.prototype.render = function(){
 	var divider = this.generator.getDivider();
 
 	var section_1 = this.generator.section({
-		'input' : [addressInput,latLongTitle,latInput,longInput,confirmBtn]
+		'input' : [addressInput, spaceInput, latLongTitle,latInput, longInput,confirmBtn]
 	});
 
 	var section_2 = this.generator.section({
@@ -517,7 +533,7 @@ mapComponent.prototype.render = function(){
 		'title' : {
 			'title' : 'Advanced Settings'
 		},
-		'input' : [zoom, IconTitle, addressIconInput, currentIconInput],
+		'input' : [zoom, spacetitle, IconTitle, addressIconInput, spaceuserIcon, currentIconInput],
 		'expandable' : {
 			'content' : 'hide'
 		}
